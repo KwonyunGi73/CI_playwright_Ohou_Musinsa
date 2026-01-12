@@ -1,40 +1,32 @@
 // tests/ohou-shopping-full.spec.ts 상단 수정
 
 import { test, expect } from '@playwright/test';
-import fs from 'fs';
-import path from 'path';
+
 
 // 전역 설정 무시 및 화면 크기 설정 (FHD 1920x1080)
-test.use({ 
-  storageState: { cookies: [], origins: [] },
-  viewport: { width: 1920, height: 1080 }  // ★ 이 줄을 추가하세요!
-});
-
-test('통합 시나리오: 계단식 옵션 선택 및 장바구니 검증', async ({ browser }) => {
-  // ... (이후 코드는 그대로)
-  // [Step 0] 준비
-  const authFile = path.join(__dirname, '../playwright/.auth/user.json');
-  if (!fs.existsSync(authFile)) throw new Error('쿠키 파일이 없습니다. setup을 먼저 실행하세요!');
-
-  const context = await browser.newContext({ storageState: authFile });
-  await context.clearCookies({ domain: '.ohou.se' });
-  await context.clearCookies({ domain: 'ohou.se' });
-  const page = await context.newPage();
-
-  // -------------------------------------------------------
-  // [Step 1 ~ 6] 로그인 ~ 상품 진입
-  // -------------------------------------------------------
+test('통합 시나리오: 계단식 옵션 선택 및 장바구니 검증', async ({ page }) => {
+  
+  // [Step 1] 홈페이지 진입 (Config 설정으로 인해 이미 로그인된 상태로 접속)
   console.log('Step 1: 홈페이지 진입');
   await page.goto('/');
+
+  // [Step 2] 로그인 검증 (버튼 클릭 대신, 진짜 로그인이 됐는지 확인)
+  console.log('Step 2: 로그인 상태 확인 (쿠키 검증)');
   
-  console.log('Step 2: 로그인');
-  await page.getByRole('link', { name: '로그인' }).click();
-  await Promise.all([
-    page.waitForURL('https://ohou.se/'), 
-    page.locator('a[href*="/users/auth/naver"]').click()
-  ]);
+  // 💡 팁: 로그인이 잘 됐다면 상단에 '로그인' 버튼이 없고 '프로필 아이콘'이나 '로그아웃' 버튼이 있을 겁니다.
+  // 아래 코드는 "로그인 버튼이 없어야 한다(=로그인 성공)"는 뜻입니다.
+  const loginButton = page.getByRole('link', { name: '로그인' });
+  await expect(loginButton).not.toBeVisible(); 
   
-  console.log('Step 4: 검색');
+  // 혹은 프로필 아이콘이 보이는지 확인하는 방법도 좋습니다.
+  // await expect(page.locator('프로필 아이콘 선택자')).toBeVisible();
+
+  console.log('>> 로그인 검증 완료: 이미 로그인된 사용자입니다.');
+
+  // -------------------------------------------------------
+  // [Step 3] 바로 검색 시작
+  // -------------------------------------------------------
+  console.log('Step 3: 검색');
   const searchInput = page.getByPlaceholder('통합검색');
   await searchInput.waitFor({ state: 'visible' });
   await searchInput.click();
