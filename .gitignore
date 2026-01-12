@@ -1,7 +1,0 @@
-# Playwright 인증 정보 (절대 업로드 금지)
-auth.json
-storageState.json
-user.json
-.auth/
-**/*auth.json
-**/*state.json
