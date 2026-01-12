@@ -1,0 +1,45 @@
+name: Playwright Tests
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    # 1. 노드(자바스크립트 실행기) 설치
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+
+    # 2. 패키지 설치 (package-lock.json 보고 설치함)
+    - name: Install dependencies
+      run: npm ci
+
+    # 3. Playwright 브라우저 설치
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+
+    # 4. [핵심] 깃허브 금고에서 쿠키 꺼내서 파일로 만들기
+    # 아까 등록한 OHOU_AUTH_JSON을 꺼내서 ohou-auth.json 파일로 복원합니다.
+    - name: Restore Auth File
+      run: |
+        echo "${{ secrets.OHOU_AUTH_JSON }}" | base64 -d > ohou-auth.json
+
+    # 5. 테스트 실행 (config 파일 설정대로 ohou-auth.json을 사용해서 로그인됨)
+    - name: Run Playwright tests
+      run: npx playwright test --project=Ohou
+
+    # 6. 결과 리포트 저장 (실패 시 다운로드해서 볼 수 있음)
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30
