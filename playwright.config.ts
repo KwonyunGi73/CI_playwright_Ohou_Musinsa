@@ -16,6 +16,8 @@ export default defineConfig({
     trace: 'on-first-retry',
     headless: !!process.env.CI,
     viewport: { width: 1280, height: 720 },
+
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   },
 
   /* 2. 여기가 핵심입니다: 각 파일마다 사용할 주소(baseURL)를 따로 지정 */

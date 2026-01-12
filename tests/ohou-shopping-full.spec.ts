@@ -9,6 +9,7 @@ test('통합 시나리오: 계단식 옵션 선택 및 장바구니 검증', asy
   // [Step 1] 홈페이지 진입 (Config 설정으로 인해 이미 로그인된 상태로 접속)
   console.log('Step 1: 홈페이지 진입');
   await page.goto('/');
+  await expect(page).toHaveTitle(/오늘의집/);
 
   // [Step 2] 로그인 검증 (버튼 클릭 대신, 진짜 로그인이 됐는지 확인)
   console.log('Step 2: 로그인 상태 확인 (쿠키 검증)');
