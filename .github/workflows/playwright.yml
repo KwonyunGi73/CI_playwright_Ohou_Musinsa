@@ -34,7 +34,7 @@ jobs:
 
     # 5. 테스트 실행 (config 파일 설정대로 ohou-auth.json을 사용해서 로그인됨)
     - name: Run Playwright tests
-      run: npx playwright test --project=Ohou
+      run: npx playwright test
 
     # 6. 결과 리포트 저장 (실패 시 다운로드해서 볼 수 있음)
     - uses: actions/upload-artifact@v4
