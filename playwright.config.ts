@@ -14,7 +14,7 @@ export default defineConfig({
   
   use: {
     trace: 'on-first-retry',
-    headless: false, 
+    headless: !!process.env.CI,
     viewport: { width: 1280, height: 720 },
   },
 
