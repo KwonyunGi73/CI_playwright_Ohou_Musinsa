@@ -2,12 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
-  
-  /* 1. 하나씩 순서대로 실행 (충돌 방지) */
   fullyParallel: false,
   workers: 1, 
-
-  /* 공통 설정 */
   timeout: 60 * 1000,
   expect: { timeout: 10000 },
   reporter: 'html',
@@ -16,8 +12,14 @@ export default defineConfig({
     trace: 'on-first-retry',
     headless: !!process.env.CI,
     viewport: { width: 1920, height: 1080 },
-    
-    /* 👇 [핵심 1] 진짜 사람처럼 보이는 헤더 추가 (구글에서 온 척하기) */
+
+    /* 👇 [추가] 서울 사는 척하기 (위치 속이기) */
+    locale: 'ko-KR',
+    timezoneId: 'Asia/Seoul',
+    geolocation: { longitude: 126.9780, latitude: 37.5665 },
+    permissions: ['geolocation'],
+
+    /* 기존 스텔스 설정 유지 */
     extraHTTPHeaders: {
       'accept-language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
       'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
@@ -26,21 +28,16 @@ export default defineConfig({
       'sec-ch-ua-mobile': '?0',
       'sec-ch-ua-platform': '"Windows"',
     },
-
-    /* 👇 [핵심 2] 봇 탐지 기능을 끄는 강력한 옵션 */
     launchOptions: {
       args: [
-        '--disable-blink-features=AutomationControlled', // "나 자동화 봇 아님" 라고 속임
+        '--disable-blink-features=AutomationControlled',
         '--no-sandbox',
         '--disable-setuid-sandbox',
       ],
     },
-
-    // 기존 User-Agent 유지
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   },
 
-  /* 2. 프로젝트 설정 */
   projects: [
     {
       name: 'Musinsa', 

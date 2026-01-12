@@ -12,7 +12,7 @@ test('무신사 검색 -> 필터(총장) -> 상품선택 -> 옵션/장바구니 
     await page.goto('https://www.musinsa.com/');
     
     // 2. 봇 차단 확인 (안전장치)
-    await expect(page).toHaveTitle(/무신사/);
+    await expect(page).toHaveTitle(/무신사|MUSINSA/);
 
     // 3. [PC버전 수정] '검색 레이어 열기' 버튼 찾는 과정 삭제!
     // 상단 헤더에 있는 검색창(Input)을 바로 찾아서 클릭합니다.
