@@ -4,21 +4,32 @@ test('무신사 검색 -> 필터(총장) -> 상품선택 -> 옵션/장바구니 
 
   let targetProductTitle = '';
 
-  // 1. [진입]
-  await test.step('메인 페이지 진입', async () => {
+  // -----------------------------------------------------------------------
+  // [수정됨] Step 1 & 2 통합: PC 화면 기준 진입 및 바로 검색
+  // -----------------------------------------------------------------------
+  await test.step('메인 페이지 진입 및 검색', async () => {
+    // 1. 홈페이지 이동
     await page.goto('https://www.musinsa.com/');
-    await expect(page.getByRole('button', { name: '검색 레이어 열기' }).first()).toBeVisible();
-    await page.getByRole('button', { name: '검색 레이어 열기' }).first().click();
-  });
+    
+    // 2. 봇 차단 확인 (안전장치)
+    await expect(page).toHaveTitle(/무신사/);
 
-  // 2. [검색]
-  await test.step('검색어 입력 및 이동', async () => {
-    const searchInput = page.locator('input[type="text"], input[type="search"]').filter({ hasText: '' }).last();
+    // 3. [PC버전 수정] '검색 레이어 열기' 버튼 찾는 과정 삭제!
+    // 상단 헤더에 있는 검색창(Input)을 바로 찾아서 클릭합니다.
+    const searchInput = page.locator('header input[type="search"], header input[type="text"]').first();
+    
+    await searchInput.waitFor({ state: 'visible' });
     await searchInput.click();
     await searchInput.fill('코트');
     await searchInput.press('Enter');
+
+    // 4. 검색 결과가 나왔는지 확인 (남성 필터 버튼이 보이면 성공)
     await expect(page.locator('button[data-filter-type="남성"]')).toBeVisible({ timeout: 10000 });
   });
+
+  // -----------------------------------------------------------------------
+  // [이하 동일] 기존 로직 그대로 유지
+  // -----------------------------------------------------------------------
 
   // 3. [필터] 성별
   await test.step('필터: 성별(남) 선택', async () => {
@@ -83,7 +94,7 @@ test('무신사 검색 -> 필터(총장) -> 상품선택 -> 옵션/장바구니 
     await expect(productPage.getByRole('button', { name: /장바구니/ })).toBeVisible({ timeout: 15000 });
   });
 
-  // 8. [계단식] 장바구니 담기 (Firefox Fix Applied)
+  // 8. [계단식] 장바구니 담기
   await test.step('옵션 선택 및 장바구니 담기', async () => {
     const cartBtn = productPage.getByRole('button', { name: /장바구니/ }).first();
     const successMsg = productPage.getByText(/장바구니.*담았습니다|장바구니.*이동/);
@@ -132,7 +143,6 @@ test('무신사 검색 -> 필터(총장) -> 상품선택 -> 옵션/장바구니 
       await cartBtn.click();
 
       try {
-        // 파이어폭스를 위해 대기 시간을 2s -> 3s로 살짝 늘림
         await expect(successMsg).toBeVisible({ timeout: 3000 });
         console.log(`🎉 성공: 옵션 ${i + 1}번 선택 후 장바구니 담기 성공!`);
         return; 
@@ -143,14 +153,12 @@ test('무신사 검색 -> 필터(총장) -> 상품선택 -> 옵션/장바구니 
 
     console.log('모든 옵션 시도 종료. 성공 메시지 확인 중...');
     
-    // 🚨 [Firefox 방어 로직] 혹시 클릭이 씹혔을 경우 마지막 재시도
     if (await cartBtn.isVisible()) {
         console.log('⚠️ [Last Resort] 장바구니 버튼 마지막 강제 클릭 시도');
         await cartBtn.click({ force: true });
         await productPage.waitForTimeout(1000);
     }
 
-    // 타임아웃을 10초로 늘림 (Firefox 렌더링 지연 대응)
     await expect(successMsg).toBeVisible({ timeout: 10000 });
   });
 
@@ -170,7 +178,6 @@ test('무신사 검색 -> 필터(총장) -> 상품선택 -> 옵션/장바구니 
     console.log('장바구니 페이지 진입 성공');
 
     await expect(productPage.locator('body')).not.toBeEmpty();
-    // 여기서는 상품이 있어야 하므로 "없습니다"가 숨겨져 있어야 함
     await expect(productPage.getByText(/장바구니에 담.* 상품이 없습니다/)).toBeHidden();
     
     console.log('검증 완료: 장바구니에 상품이 존재합니다.');
@@ -179,14 +186,9 @@ test('무신사 검색 -> 필터(총장) -> 상품선택 -> 옵션/장바구니 
   // 10. [정리] 장바구니 비우기
   await test.step('장바구니 비우기 (Step 10)', async () => {
     console.log('🧹 장바구니 정리 시작: [전체선택] -> [선택삭제] 진행');
-
-    // 1. 전체 선택 클릭
     const selectAllBtn = productPage.locator('.cart-all-check__wrap'); 
     await selectAllBtn.click();
-    
     await productPage.waitForTimeout(500);
-
-    // 2. 선택 삭제 버튼 클릭
     const deleteBtn = productPage.locator('.cart-all-check__delete'); 
     await deleteBtn.click();
   });
@@ -194,13 +196,10 @@ test('무신사 검색 -> 필터(총장) -> 상품선택 -> 옵션/장바구니 
   // 11. [최종] 팝업 승인 및 빈 장바구니 검증
   await test.step('최종 삭제 승인 (Step 11)', async () => {
       console.log('🚨 확인 팝업 대기 중...');
-      
-      // 1. 팝업의 [삭제하기] 버튼 클릭
       const finalDeleteBtn = productPage.getByRole('button', { name: '삭제하기' }).last();
       await expect(finalDeleteBtn).toBeVisible({ timeout: 3000 });
       await finalDeleteBtn.click();
 
-      // 2. [검증] 빈 장바구니 확인
       const emptyMsg = productPage.locator('.cart-no-result__title');
       await expect(emptyMsg).toBeVisible({ timeout: 5000 });
       await expect(emptyMsg).toContainText('장바구니에 담은 상품이 없습니다');
@@ -208,7 +207,5 @@ test('무신사 검색 -> 필터(총장) -> 상품선택 -> 옵션/장바구니 
       console.log('✨ 장바구니 완전 삭제 및 메시지 검증 완료!');
   });
 
-  console.log('😎 3개 브라우저 테스트 완료! 5초 뒤 자동으로 닫힙니다...');
-  await page.waitForTimeout(5000); 
-
+  console.log('😎 테스트 완료!');
 });
