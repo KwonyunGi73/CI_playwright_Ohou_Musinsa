@@ -11,8 +11,6 @@
 
 > **"From Failure to Success"** > 초기에는 봇 탐지 및 환경 이슈로 인해 실패(Fail)했으나, 끈질긴 원인 분석 및 설정을 통해 최종적으로 안정적인 성공(Success) 파이프라인을 구축했습니다.
 
-![CI Result](./image_1f2771.png)
-*(위 스크린샷은 실제 GitHub Actions 실행 로그입니다.)*
 
 ---
 
